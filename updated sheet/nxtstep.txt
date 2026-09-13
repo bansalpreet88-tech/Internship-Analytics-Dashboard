@@ -1,0 +1,277 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                   TABLEAU DASHBOARD BUILD GUIDE                              ║
+║                  Road Accident Analysis Dashboard                           ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+🎯 STORY: "When, where, and why do accidents happen, and what factors increase severity?"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ PREREQUISITES (DONE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Loaded AccidentsBig.csv
+✓ Created Calculated Fields:
+   • Hour                      → DATEPART('hour', [Time])
+   • Severity Label            → IF [Accident_Severity]=1 THEN "Fatal"
+                                   ELSEIF [Accident_Severity]=2 THEN "Serious"
+                                   ELSE "Slight" END
+   • Month/Year                → DATENAME('month', [Date]) + " " + STR(YEAR([Date]))
+   • Urban/Rural Label         → IF [Urban_or_Rural_Area]=1 THEN "Urban"
+                                   ELSE "Rural" END
+   • Day of Week Name          → DATENAME('weekday', [Date])
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 STEP 1: CREATE 7 WORKSHEETS (Do in order)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+─── WS1: Accident Trend Over Time ───
+  • New Worksheet → Rename "WS1_Trend"
+  • Columns: [Month/Year] (right-click → Discrete)
+  • Rows: Number of Records (CNT(Accident_Index))
+  • Marks: Line
+  • Right-click X-axis → Edit → Tick Marks → Major tick marks = "Every month"
+  • Label: "Accident Trend Over Time"
+
+
+─── WS2: Accidents by Hour ───
+  • New Worksheet → Rename "WS2_Hour"
+  • Columns: [Hour]
+  • Rows: Number of Records (CNT)
+  • Marks: Bar
+  • Sort: Hour ascending
+  • Label: "Accidents by Hour of Day"
+  • X-axis: Edit → Range → Fixed 0-24
+
+
+─── WS3: Severity Distribution ───
+  • New Worksheet → Rename "WS3_Severity"
+  • Rows: [Severity Label]
+  • Columns: Number of Records (CNT)
+  • Marks: Bar
+  • Color: [Severity Label]
+    – Right-click Color → Edit Colors → Set:
+      • Fatal = Red (#E31837)
+      • Serious = Orange (#FF7F00)
+      • Slight = Green (#4CAF50)
+  • Label: "Accidents by Severity"
+
+
+─── WS4: Weather Conditions ───
+  • New Worksheet → Rename "WS4_Weather"
+  • Rows: [Weather_Conditions]
+  • Filters: Exclude "Unknown" (if present)
+  • Columns: Number of Records (CNT)
+  • Marks: Bar
+  • Sort: Count descending
+  • Label: "Accidents by Weather"
+
+
+─── WS5: Road Type Analysis ───
+  • New Worksheet → Rename "WS5_RoadType"
+  • Rows: [Road_Type]
+  • Columns: Number of Records (CNT)
+  • Marks: Bar
+  • Filter: Exclude null/blank
+  • Sort: Count descending
+  • Label: "Accidents by Road Type"
+
+
+─── WS6: Geographic Map ───
+  • New Worksheet → Rename "WS6_Map"
+  • Double-click: [Latitude] → becomes rows
+  • Double-click: [Longitude] → becomes columns
+  • Tableau auto-generates map
+  • Marks: Circle
+  • Color: [Severity Label] (same red/orange/green)
+  • Size: Number of Records (or set to 10 fixed)
+  • Filters: Exclude null Latitude/Longitude
+  • Map Style: Format → Map → Style = "Light" or "Normal"
+  • Label: "Accident Locations by Severity"
+
+
+─── WS7: Heatmap (Day vs Hour) ───
+  • New Worksheet → Rename "WS7_Heatmap"
+  • Columns: [Day of Week Name] (or [Day_of_Week] → convert to names)
+  • Rows: [Hour]
+  • Marks: Square
+  • Color: Number of Records (CNT)
+    – Edit Colors → Palette = "Red-Black-Green Diverging"
+    – Center = 0 or median
+  • Label: Show counts on cells (Mark → Label → Show mark labels)
+  • Label: "Accident Heatmap: Day vs Hour"
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🖼️ STEP 2: CREATE DASHBOARD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Click Dashboard → New Dashboard
+2. Name: "Road Accident Dashboard"
+
+─── Layout Structure ───
+
+  [Dashboard Title]
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  [KPI Box]  [KPI Box]  [KPI Box]                                   │
+  ├─────────────────────────────────────────────────────────────────┤
+  │        │                      │                                   │
+  │  [WS2] │      [WS3]            │      [WS4]     [WS5]           │
+  │  Hour  │   Severity            │      │         │              │
+  │  Chart │   Chart               │      │         │              │
+  │        │                      │      │         │              │
+  │        │                      │      │         │              │
+  ├────────┴──────────────────────┼──────┼─────────┴──────────────┤
+  │                               │      │                           │
+  │                               │      │                           │
+  │                               ▼      ▼                           │
+  │                          [Dashboard Actions Here]               │
+  │                                                                  │
+  │                                                                  │
+  │                           [WS6_Map - Full Width]                │
+  │                                                                  │
+  └──────────────────────────────────────────────────────────────────┘
+
+
+─── Implementation ───
+
+1. Drag a "Vertical" container to dashboard
+2. Inside it (top): Drag a "Horizontal" container for KPIs
+3. Create 3 KPI text objects:
+   • Total Accidents = WINDOW_SUM(CNT(Accident_Index))
+   • Total Casualties = SUM(Number_of_Casualties)
+   • Fatal Accidents = {FIXED: SUM(IF [Severity Label]="Fatal" THEN 1 END)}
+   Format: Large font (24-32pt), bold, colored background
+
+4. Below KPIs: Add another Horizontal container
+   Left: Drag WS2_Hour sheet
+   Right: Drag WS3_Severity sheet
+
+5. Below that: Add another Horizontal container
+   Left: Drag WS4_Weather
+   Right: Drag WS5_RoadType
+
+6. Below: Drag WS6_Map (full width)
+
+7. Optional: Add WS7_Heatmap as separate tab, not on main dashboard
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎛️ STEP 3: ADD FILTERS (Apply to ALL sheets)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Drag these to Filters (on each worksheet OR to dashboard):
+
+• YEAR([Date]) → 2018, 2019, 2020 (select all years)
+• [Weather_Conditions] → Exclude "Unknown"
+• [Road_Type] → Exclude null/blank
+• [Severity Label] → All
+• [Urban/Rural Label] → All
+
+On Dashboard:
+  Right-click each filter → "Apply to Worksheets" → "Selected Worksheets" → Check ALL
+
+Show filters on dashboard:
+  Right-click filter in dashboard → "Show Filter" (UI controls for user)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚡ STEP 4: ADD INTERACTIVITY (Dashboard Actions)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Dashboard → Actions → Add Action → Filter
+
+  Name: "Cross-filter"
+  Source Sheets: All 7 worksheets (check them)
+  Target Sheets: All 7 worksheets
+  Run action on: Select
+  Clearing selections: Keep or Show all
+
+This makes clicking any chart filter the entire dashboard.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎨 STEP 5: POLISH & FORMAT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Dashboard Title: Top centered, large, bold
+  "Road Accident Analysis Dashboard"
+
+• Subtitle: Below title in smaller text
+  "UK Accident Data - Interactive Visual Analytics"
+
+• Consistent Colors:
+  Fatal = Red (#E31837), Serious = Orange (#FF7F00), Slight = Green (#4CAF50)
+
+• Remove all unnecessary gridlines:
+  Format → Borders/Gridlines → None
+
+• Axis titles: Clear or concise ("Hour of Day", "Number of Accidents")
+
+• Tooltips: Add useful info
+  Edit Tooltip → show: Count, % of total, Severity, Weather
+
+• Sheet titles: Show, clear, positioned top-left
+
+• Map: Add size legend, color legend (bottom)
+
+• Dashboard → Fit → "Entire Dashboard" (for export)
+
+• Mobile layout: Optional → Create Mobile Layout → rearrange for phone
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📤 STEP 6: EXPORT & SUBMIT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. File → Save As → .twbx (packaged workbook) - preferred
+2. Dashboard → Export → PDF (for submission)
+3. (Optional) Export each sheet as PNG
+
+Submit both .twbx and PDF in your assignment.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🎤 STEP 7: VIVA PREPARATION (What to say)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+> "The dashboard integrates temporal, environmental, and vehicular factors to
+> identify accident patterns and severity drivers using interactive visual
+> analytics. The map reveals geographic clustering, the heatmap shows peak
+> danger periods, and the filters allow granular exploration. Key findings:
+> rush hour spikes, adverse weather correlates with severity, and urban areas
+> have higher volumes. The cross-filtering enables root cause analysis across
+> dimensions."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ CHECKLIST BEFORE SUBMISSION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+□ All 7 worksheets created and working
+□ Dashboard layout matches structure above
+□ KPIs show correct totals
+□ Filters visible and apply to all sheets
+□ Cross-filter action works (click a bar → other charts update)
+□ Colors consistent (red/orange/green)
+□ No gridlines (clean look)
+□ Title + subtitle present
+□ No null/unknown data showing (except if significant)
+□ Export to PDF looks good (single page or multi-page)
+□ Save as .twbx
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Map not showing: Ensure Latitude/Longitude are geographic roles (right-click → Geographic Role → Latitude/Longitude)
+• Hour calculation error: Check Time field type → Should be Date & Time or String. Use appropriate formula above.
+• Filters not applying: Dashboard → Actions → ensure "Filter" action covers all sheets
+• Slow performance: Go to Data Source → Extract → Create Extract (faster than live connection)
+• Missing values: Filter them out at source or in each chart (null exclusion)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+You're ready! Build now. If stuck: Google "Tableau [your issue]" or refer to above.
